@@ -71,9 +71,9 @@ module Middleman
         response
       when Array
         response.join
-      when Rack::Response
+      when ::Rack::Response
         response.body.join
-      when Rack::File
+      when ::Rack::File
         File.read(response.path)
       else
         response.to_s

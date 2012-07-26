@@ -9,9 +9,9 @@ Then /^the file "([^\"]*)" is removed$/ do |path|
 end
 
 Then /^the file "([^\"]*)" did change$/ do |path|
-  @server_inst.files.did_change(path)
+  @app_rack.on_change(path)
 end
 
 Then /^the file "([^\"]*)" did delete$/ do |path|
-  @server_inst.files.did_delete(path)
+  @app_rack.on_delete(path)
 end

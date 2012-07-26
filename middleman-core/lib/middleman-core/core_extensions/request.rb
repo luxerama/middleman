@@ -12,18 +12,7 @@ module Middleman
       class << self
         # @private
         def registered(app)
-          
-          # CSSPIE HTC File
-          ::Rack::Mime::MIME_TYPES['.htc'] = 'text/x-component'
-
-          # Let's serve all HTML as UTF-8
-          ::Rack::Mime::MIME_TYPES['.html'] = 'text/html; charset=utf-8'
-          ::Rack::Mime::MIME_TYPES['.htm'] = 'text/html; charset=utf-8'
-          
           app.extend ClassMethods
-          app.extend ServerMethods
-          
-          Middleman.extend CompatibleClassMethods
       
           # Include instance methods
           app.send :include, InstanceMethods
@@ -32,28 +21,12 @@ module Middleman
       end
     
       module ClassMethods
-        # Reset Rack setup
-        #
-        # @private
-        def reset!
-          @app = nil
-          @prototype = nil
-        end
-  
-        # The shared Rack instance being build
-        #
-        # @private
-        # @return [Rack::Builder]
-        def app
-          @app ||= ::Rack::Builder.new
-        end
-  
         # Get the static instance
         #
         # @private
         # @return [Middleman::Application]
-        def inst(&block)
-          @inst ||= begin
+        def singleton(&block)
+          @singleton ||= begin
             mm = new(&block)
             mm.run_hook :ready
             mm
@@ -65,87 +38,38 @@ module Middleman
         # @private
         # @param [Middleman::Application] inst
         # @return [void]
-        def inst=(inst)
-          @inst = inst
+        def singleton=(singleton)
+          @singleton = singleton
         end
   
-        # Return built Rack app
+        # The list of added Rack middleware
         #
-        # @private
-        # @return [Rack::Builder]
-        def to_rack_app(&block)
-          inner_app = inst(&block)
-    
-          (@middleware || []).each do |m|
-            app.use(m[0], *m[1], &m[2])
-          end
-    
-          app.map("/") { run inner_app }
-    
-          (@mappings || []).each do |m|
-            app.map(m[0], &m[1])
-          end
-    
-          app
-        end
-  
-        # Prototype app. Used in config.ru
-        #
-        # @private
-        # @return [Rack::Builder]
-        def prototype
-          @prototype ||= to_rack_app
-        end
-
-        # Call prototype, use in config.ru
-        #
-        # @private
-        def call(env)
-          prototype.call(env)
-        end
+        # @return [Array]
+        def middleware
+          @middleware ||= []
+        end 
   
         # Use Rack middleware
         #
-        # @param [Class] middleware Middleware module
+        # @param [Class] app Middleware module
         # @return [void]
-        def use(middleware, *args, &block)
-          @middleware ||= []
-          @middleware << [middleware, args, block]
+        def use(app, *args, &block)
+          middleware << [app, args, block]
         end
   
+        # The list of added Rack maps
+        #
+        # @return [Array]
+        def mappings
+          @mappings ||= []
+        end
+        
         # Add Rack App mapped to specific path
         #
         # @param [String] map Path to map
         # @return [void]
         def map(map, &block)
-          @mappings ||= []
-          @mappings << [map, block]
-        end
-      end
-  
-      module ServerMethods
-        # Create a new Class which is based on Middleman::Application
-        # Used to create a safe sandbox into which extensions and
-        # configuration can be included later without impacting
-        # other classes and instances.
-        #
-        # @return [Class]
-        def server(&block)
-          @@servercounter ||= 0
-          @@servercounter += 1
-          const_set("MiddlemanApplication#{@@servercounter}", Class.new(Middleman::Application))
-        end
-      end
-      
-      module CompatibleClassMethods
-        # Create a new Class which is based on Middleman::Application
-        # Used to create a safe sandbox into which extensions and
-        # configuration can be included later without impacting
-        # other classes and instances.
-        #
-        # @return [Class]
-        def server(&block)
-          ::Middleman::Application.server
+          mappings << [map, block]
         end
       end
 

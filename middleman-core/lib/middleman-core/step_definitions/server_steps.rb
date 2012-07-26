@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require "rack/test"
+require "middleman-core/rack"
 
 Given /^a clean server$/ do
   @initialize_commands = []
@@ -41,20 +42,18 @@ Given /^the Server is running$/ do
   end
   
   initialize_commands = @initialize_commands || []
-  initialize_commands.unshift lambda {
+  
+  @app_rack = ::Middleman::Rack.new do
     set :root, root_dir
     set :environment, @current_env || :development
     set :show_exceptions, false
-  }
-  
-  @server_inst = Middleman::Application.server.inst do
+    
     initialize_commands.each do |p|
       instance_exec(&p)
     end
   end
   
-  app_rack = @server_inst.class.to_rack_app
-  @browser = ::Rack::Test::Session.new(::Rack::MockSession.new(app_rack))
+  @browser = ::Rack::Test::Session.new(::Rack::MockSession.new(@app_rack))
 end
 
 Given /^the Server is running at "([^\"]*)"$/ do |app_path|

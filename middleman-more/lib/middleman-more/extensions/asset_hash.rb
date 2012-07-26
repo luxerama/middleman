@@ -87,7 +87,7 @@ module Middleman
                 end
               end
 
-              status, headers, response = Rack::Response.new(body, status, headers).finish
+              status, headers, response = ::Rack::Response.new(body, status, headers).finish
             end
           end
           [status, headers, response]

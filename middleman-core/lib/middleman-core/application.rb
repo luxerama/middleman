@@ -26,7 +26,19 @@ module Middleman
     define_hook :ready
 
     class << self
-
+  
+      # Create a new Class which is based on Middleman::Application
+      # Used to create a safe sandbox into which extensions and
+      # configuration can be included later without impacting
+      # other classes and instances.
+      #
+      # @return [Class]
+      def server(&block)
+        @@servercounter ||= 0
+        @@servercounter += 1
+        const_set("MiddlemanApplication#{@@servercounter}", Class.new(Middleman::Application))
+      end
+      
       # Mix-in helper methods. Accepts either a list of Modules
       # and/or a block to be evaluated
       # @return [void]
@@ -52,7 +64,7 @@ module Middleman
         @defaults ||= {}
         @defaults[key] = value
 
-        @inst.set(key, value, &block) if @inst
+        @singleton.set(key, value, &block) if @singleton
       end
     end
 
@@ -241,5 +253,15 @@ module Middleman
       end
     end
 
+  end
+  
+  # Create a new Class which is based on Middleman::Application
+  # Used to create a safe sandbox into which extensions and
+  # configuration can be included later without impacting
+  # other classes and instances.
+  #
+  # @return [Class]
+  def self.server(&block)
+    ::Middleman::Application.server
   end
 end

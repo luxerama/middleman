@@ -22,7 +22,7 @@ module Middleman::Extensions
 
         app.after_build do |builder|
           
-          paths = ::Middleman::Util.all_files_under(self.class.inst.build_dir)
+          paths = ::Middleman::Util.all_files_under(self.class.singleton.build_dir)
           paths.each do |path|
             next unless exts.include? path.extname
             
