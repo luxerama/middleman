@@ -76,7 +76,7 @@ module Middleman
           return unless respond_to?(:asset_url)
 
           extension = self
-          app.ready do
+          app.before_configuration do
             assets_paths.register_handler(&extension.method(:asset_url))
           end
         end
