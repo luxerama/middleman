@@ -36,7 +36,7 @@ module Middleman
           :partials => proc { |file| file.match(%r{/_}) && !file.match(%r{/__}) },
 
           :layout => proc { |file|
-            file.match(%r{^source/layout\.}) || file.match(%r{^source/layouts/})
+            file.match(%r{^vendor/assets/layout\.}) || file.match(%r{^vendor/assets/layouts/})
           }
         }
 
